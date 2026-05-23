@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carbon Cycle: The Terrestrial Biosphere</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@300;400;700;900&display=swap');
+
+  :root {
+    --sky: #0a1628;
+    --sky-mid: #1a3a5c;
+    --sky-light: #2d6a8f;
+    --ground: #2d4a1e;
+    --soil: #3d2b1f;
+    --soil-dark: #1e1209;
+    --leaf: #4caf50;
+    --leaf-dark: #2e7d32;
+    --sun: #ffd54f;
+    --co2: #ff7043;
+    --o2: #64b5f6;
+    --carbon: #90a4ae;
+    --fossil: #5d4037;
+    --accent: #00e5ff;
+    --text: #e0f7fa;
+    --panel: rgba(10,22,40,0.85);
+    --correct: #69f0ae;
+    --wrong: #ff5252;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Space Mono', monospace;
+    background: var(--sky);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    text-align: center;
+    padding: 2rem 1rem 1rem;
+    background: linear-gradient(180deg, #000a1a 0%, transparent 100%);
+  }
+
+  header h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(1.4rem, 4vw, 2.6rem);
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #00e5ff, #69f0ae, #ffd54f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+  }
+
+  header p {
+    max-width: 720px;
+    margin: 0.8rem auto 0;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: #90caf9;
+    font-style: italic;
+  }
+
+  .main-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.5rem 1rem 2rem;
+  }
+
+  /* ── CONTROLS PANEL ── */
+  .controls {
+    background: var(--panel);
+    border: 1px solid #1e3a5a;
+    border-radius: 12px;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    height: fit-content;
+    position: sticky;
+    top: 1rem;
+  }
+
+  .controls h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    border-bottom: 1px solid #1e3a5a;
+    padding-bottom: 0.6rem;
+  }
+
+  .control-group label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+    color: #b0bec5;
+    margin-bottom: 0.5rem;
+  }
+
+  .control-group label span {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.8rem;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: #1e3a5a;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    cursor: pointer;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 0.55rem 0;
+    border: 1px solid currentColor;
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .btn-fire  { color: #ff7043; }
+  .btn-plant { color: #69f0ae; }
+  .btn-human { color: #ffd54f; }
+  .btn:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.68rem;
+    color: #90a4ae;
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── CANVAS AREA ── */
+  .sim-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  canvas {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid #1e3a5a;
+    display: block;
+    background: var(--sky);
+  }
+
+  /* ── METRICS BAR ── */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem;
+  }
+
+  .metric-card {
+    background: var(--panel);
+    border: 1px solid #1e3a5a;
+    border-radius: 10px;
+    padding: 0.7rem 0.8rem;
+    text-align: center;
+  }
+  .metric-card .val {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .metric-card .lbl {
+    font-size: 0.6rem;
+    color: #546e7a;
+    margin-top: 0.25rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ── QUESTIONS ── */
+  .questions {
+    background: var(--panel);
+    border: 1px solid #1e3a5a;
+    border-radius: 12px;
+    padding: 1.4rem;
+  }
+  .questions h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    border-bottom: 1px solid #1e3a5a;
+    padding-bottom: 0.6rem;
+  }
+
+  .q-block { margin-bottom: 1.4rem; }
+  .q-block p {
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: #cfd8dc;
+    margin-bottom: 0.7rem;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 0.4rem; }
+  .option-btn {
+    text-align: left;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid #1e3a5a;
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+    background: rgba(255,255,255,0.03);
+    color: #90a4ae;
+    transition: all 0.18s;
+  }
+  .option-btn:hover { border-color: var(--accent); color: var(--text); background: rgba(0,229,255,0.06); }
+  .option-btn.correct { border-color: var(--correct); color: var(--correct); background: rgba(105,240,174,0.1); }
+  .option-btn.wrong   { border-color: var(--wrong);   color: var(--wrong);   background: rgba(255,82,82,0.1); }
+
+  .q-feedback {
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    font-style: italic;
+    min-height: 1.1rem;
+    line-height: 1.5;
+  }
+  .q-feedback.c { color: var(--correct); }
+  .q-feedback.w { color: var(--wrong); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .main-layout { grid-template-columns: 1fr; }
+    .controls { position: static; }
+    .metrics { grid-template-columns: repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>THE TERRESTRIAL CARBON CYCLE</h1>
+  <p>
+    Carbon moves constantly between the atmosphere, living organisms, soil, and human activity.
+    This simulation models the <strong>biosphere's carbon cycle</strong>: photosynthesis pulls CO₂
+    from the air; respiration, decomposition, wildfires, and fossil-fuel burning return it.
+    Use the controls to observe how each process shifts the atmospheric carbon balance.
+  </p>
+</header>
+
+<div class="main-layout">
+
+  <!-- CONTROLS -->
+  <aside class="controls">
+    <h2>⚙ Controls</h2>
+
+    <div class="control-group">
+      <label>Sunlight Intensity <span id="sunVal">70</span>%</label>
+      <input type="range" id="sunSlider" min="0" max="100" value="70">
+    </div>
+
+    <div class="control-group">
+      <label>Forest Cover <span id="forestVal">60</span>%</label>
+      <input type="range" id="forestSlider" min="5" max="100" value="60">
+    </div>
+
+    <div class="control-group">
+      <label>Human Emissions <span id="humanVal">30</span>%</label>
+      <input type="range" id="humanSlider" min="0" max="100" value="30">
+    </div>
+
+    <div class="control-group">
+      <label>Soil Moisture / Decomp <span id="soilVal">50</span>%</label>
+      <input type="range" id="soilSlider" min="0" max="100" value="50">
+    </div>
+
+    <button class="btn btn-fire"  id="fireBtn">🔥 Trigger Wildfire</button>
+    <button class="btn btn-plant" id="plantBtn">🌱 Reforestation Burst</button>
+    <button class="btn btn-human" id="resetBtn">↺ Reset Simulation</button>
+
+    <div>
+      <h2 style="margin-bottom:0.6rem">Legend</h2>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#ff7043"></div>CO₂ molecule</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#64b5f6"></div>O₂ molecule</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ffd54f"></div>Sunlight photon</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#69f0ae"></div>Fixed carbon (biomass)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#90a4ae"></div>Soil organic carbon</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ff5252"></div>Wildfire emission</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- SIM + METRICS + QUESTIONS -->
+  <div class="sim-area">
+
+    <canvas id="sim" height="460"></canvas>
+
+    <div class="metrics">
+      <div class="metric-card">
+        <div class="val" id="m-atm" style="color:#ff7043">412</div>
+        <div class="lbl">Atm CO₂ (ppm)</div>
+      </div>
+      <div class="metric-card">
+        <div class="val" id="m-bio" style="color:#69f0ae">450</div>
+        <div class="lbl">Biomass C (Gt)</div>
+      </div>
+      <div class="metric-card">
+        <div class="val" id="m-soil" style="color:#90a4ae">1580</div>
+        <div class="lbl">Soil C (Gt)</div>
+      </div>
+      <div class="metric-card">
+        <div class="val" id="m-flux" style="color:#ffd54f">0</div>
+        <div class="lbl">Net Flux (Gt/yr)</div>
+      </div>
+    </div>
+
+    <!-- QUESTIONS -->
+    <div class="questions">
+      <h2>🧠 Reasoning Questions</h2>
+
+      <!-- Q1 -->
+      <div class="q-block">
+        <p><strong>Q1.</strong> You set sunlight to 100% and forest cover to 100%, then observe the atmospheric CO₂ reading. Compared to running both sliders at 50%, the CO₂ level is:</p>
+        <div class="options" id="q1-opts">
+          <button class="option-btn" data-q="1" data-val="A">A) Higher, because more sunlight heats the atmosphere</button>
+          <button class="option-btn" data-q="1" data-val="B">B) Lower, because photosynthesis rates increase, pulling more CO₂ from the air</button>
+          <button class="option-btn" data-q="1" data-val="C">C) The same, because plants stop absorbing CO₂ once they are full</button>
+          <button class="option-btn" data-q="1" data-val="D">D) Lower, because sunlight directly destroys CO₂ molecules</button>
+        </div>
+        <div class="q-feedback" id="q1-fb"></div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="q-block">
+        <p><strong>Q2.</strong> You trigger a wildfire while human emissions are already at 80%. Looking at the net flux meter, you notice the value spikes dramatically positive. What does a <em>positive</em> net flux mean for this carbon cycle?</p>
+        <div class="options" id="q2-opts">
+          <button class="option-btn" data-q="2" data-val="A">A) Carbon is being removed from the atmosphere faster than it is released</button>
+          <button class="option-btn" data-q="2" data-val="B">B) The biosphere is in carbon balance — inputs equal outputs</button>
+          <button class="option-btn" data-q="2" data-val="C">C) More carbon is being released into the atmosphere than absorbed, causing CO₂ to accumulate</button>
+          <button class="option-btn" data-q="2" data-val="D">D) Soil carbon stores are increasing because fire releases nutrients</button>
+        </div>
+        <div class="q-feedback" id="q2-fb"></div>
+      </div>
+    </div><!-- /questions -->
+
+  </div><!-- /sim-area -->
+</div><!-- /main-layout -->
+
+<script>
+// ─────────────────────────────────────────────
+//  SIMULATION ENGINE
+// ─────────────────────────────────────────────
+const canvas = document.getElementById('sim');
+const ctx = canvas.getContext('2d');
+
+// Sliders
+const sunSlider    = document.getElementById('sunSlider');
+const forestSlider = document.getElementById('forestSlider');
+const humanSlider  = document.getElementById('humanSlider');
+const soilSlider   = document.getElementById('soilSlider');
+
+// State
+let state = {
+  atmCO2: 412,   // ppm
+  biomassC: 450, // Gt
+  soilC: 1580,   // Gt
+  fire: 0,       // wildfire timer (frames)
+};
+
+// Particles
+let particles = [];
+let trees = [];
+let clouds = [];
+
+// ── Resize canvas ──
+function resize() {
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = 460;
+  buildTrees();
+  buildClouds();
+}
+
+// ── Build trees from forest cover ──
+function buildTrees() {
+  const cover = +forestSlider.value / 100;
+  const n = Math.floor(cover * 22);
+  trees = [];
+  const W = canvas.width;
+  for (let i = 0; i < n; i++) {
+    trees.push({
+      x: 40 + (i / (n - 1 || 1)) * (W - 80) + (Math.random() - 0.5) * 20,
+      h: 60 + Math.random() * 50,
+      w: 24 + Math.random() * 20,
+      hue: 100 + Math.floor(Math.random() * 40),
+      burnt: false,
+    });
+  }
+}
+
+function buildClouds() {
+  clouds = [];
+  for (let i = 0; i < 4; i++) {
+    clouds.push({ x: Math.random() * canvas.width, y: 30 + Math.random() * 60, spd: 0.15 + Math.random() * 0.2 });
+  }
+}
+
+// ── Particle factory ──
+function spawnParticle(type, x, y, vx, vy) {
+  particles.push({ type, x, y, vx, vy, life: 1, maxLife: 200 + Math.random() * 150 });
+}
+
+function spawnBurst(type, x, y, n = 6) {
+  for (let i = 0; i < n; i++) {
+    const angle = (i / n) * Math.PI * 2;
+    spawnParticle(type, x, y, Math.cos(angle) * (0.5 + Math.random()), Math.sin(angle) * (0.5 + Math.random()) - 1.2);
+  }
+}
+
+// ── Physics step ──
+function step() {
+  const sun    = +sunSlider.value / 100;
+  const forest = +forestSlider.value / 100;
+  const human  = +humanSlider.value / 100;
+  const soil   = +soilSlider.value / 100;
+  const W = canvas.width;
+  const groundY = canvas.height * 0.65;
+
+  // Photosynthesis: removes CO2, adds biomass
+  const photo = sun * forest * 0.18;
+  // Respiration: releases CO2 from biomass
+  const resp  = forest * 0.04;
+  // Decomposition: releases CO2 from soil
+  const decomp = soil * 0.05;
+  // Human emissions
+  const humanEmit = human * 0.25;
+  // Fire pulse
+  const fireEmit = state.fire > 0 ? 0.6 : 0;
+  if (state.fire > 0) state.fire--;
+
+  const netFlux = humanEmit + resp + decomp + fireEmit - photo;
+
+  // Update reservoirs (scaled for readability)
+  state.atmCO2  = Math.max(280, state.atmCO2  + netFlux * 0.5);
+  state.biomassC = Math.max(50, state.biomassC + (photo - resp) * 5);
+  state.soilC    = Math.max(500, state.soilC   - decomp * 3 + resp * 2);
+
+  // Update metric display
+  document.getElementById('m-atm').textContent  = Math.round(state.atmCO2);
+  document.getElementById('m-bio').textContent  = Math.round(state.biomassC);
+  document.getElementById('m-soil').textContent = Math.round(state.soilC);
+  const fluxSign = netFlux >= 0 ? '+' : '';
+  document.getElementById('m-flux').textContent = fluxSign + netFlux.toFixed(2);
+  document.getElementById('m-flux').style.color = netFlux > 0.05 ? '#ff7043' : netFlux < -0.05 ? '#69f0ae' : '#ffd54f';
+
+  // ── Spawn particles ──
+  // CO2 from human (chimneys at right)
+  if (human > 0.1 && Math.random() < human * 0.4) {
+    spawnParticle('co2', W * 0.82 + (Math.random() - 0.5) * 40, groundY - 30, (Math.random() - 0.5) * 0.5, -1.5 - Math.random());
+  }
+  // O2 from photosynthesis (trees)
+  if (photo > 0.05 && trees.length && Math.random() < photo * 0.8) {
+    const t = trees[Math.floor(Math.random() * trees.length)];
+    if (!t.burnt) spawnParticle('o2', t.x, groundY - t.h - 10, (Math.random() - 0.5) * 0.6, -1.2 - Math.random());
+  }
+  // CO2 from decomposition (soil)
+  if (Math.random() < decomp * 0.3) {
+    spawnParticle('decomp', 60 + Math.random() * (W - 120), groundY + 10, (Math.random() - 0.5) * 0.4, -0.6 - Math.random() * 0.5);
+  }
+  // Sunlight photons
+  if (Math.random() < sun * 0.3) {
+    spawnParticle('sun', Math.random() * W, 0, (Math.random() - 0.5) * 0.3, 1.5 + Math.random());
+  }
+  // Fire particles
+  if (state.fire > 0 && Math.random() < 0.6) {
+    const tx = trees.find(t => t.burnt);
+    if (tx) spawnParticle('fire', tx.x + (Math.random() - 0.5) * tx.w, groundY - tx.h * 0.5, (Math.random() - 0.5) * 1.5, -2 - Math.random() * 2);
+  }
+
+  // Update particles
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx += (Math.random() - 0.5) * 0.08;
+    p.life -= 1 / p.maxLife;
+    // Atmospheric CO2 drift sideways at top
+    if (p.type === 'co2' && p.y < 80) { p.vy *= 0.98; p.vx += (Math.random() - 0.5) * 0.15; }
+    if (p.type === 'sun' && p.y > canvas.height) p.life = 0;
+  });
+  if (particles.length > 400) particles.splice(0, particles.length - 400);
+
+  // Move clouds
+  clouds.forEach(c => { c.x += c.spd; if (c.x > canvas.width + 120) c.x = -120; });
+}
+
+// ── Draw ──
+function draw() {
+  const W = canvas.width, H = canvas.height;
+  const groundY = H * 0.65;
+  const sun = +sunSlider.value / 100;
+  const forest = +forestSlider.value / 100;
+
+  // Sky gradient
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, groundY);
+  const brightness = 0.15 + sun * 0.45;
+  skyGrad.addColorStop(0, `hsl(210,60%,${Math.round(brightness * 30)}%)`);
+  skyGrad.addColorStop(1, `hsl(200,50%,${Math.round(brightness * 50)}%)`);
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, groundY);
+
+  // Ground + soil layers
+  const gGrad = ctx.createLinearGradient(0, groundY, 0, H);
+  gGrad.addColorStop(0, '#2d4a1e');
+  gGrad.addColorStop(0.12, '#4a3728');
+  gGrad.addColorStop(0.4, '#3d2b1f');
+  gGrad.addColorStop(1, '#1e1209');
+  ctx.fillStyle = gGrad;
+  ctx.fillRect(0, groundY, W, H - groundY);
+
+  // Soil C indicator stripe
+  const soilPct = Math.min(1, state.soilC / 2000);
+  ctx.fillStyle = `rgba(144,164,174,${soilPct * 0.25})`;
+  ctx.fillRect(0, groundY + 20, W, (H - groundY - 20) * soilPct);
+
+  // Clouds
+  ctx.save();
+  clouds.forEach(c => {
+    ctx.globalAlpha = 0.25 + sun * 0.3;
+    ctx.fillStyle = '#cfe8f5';
+    [[0,0,40,20],[28,-10,36,20],[-25,-8,34,18],[30,8,40,18]].forEach(([dx,dy,rw,rh]) => {
+      ctx.beginPath();
+      ctx.ellipse(c.x + dx, c.y + dy, rw, rh, 0, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  });
+  ctx.restore();
+
+  // Sun orb
+  const sunX = W * 0.88, sunY = 60;
+  if (sun > 0.05) {
+    ctx.save();
+    const sunR = ctx.createRadialGradient(sunX, sunY, 5, sunX, sunY, 60);
+    sunR.addColorStop(0, `rgba(255,213,79,${sun})`);
+    sunR.addColorStop(0.5, `rgba(255,193,7,${sun * 0.5})`);
+    sunR.addColorStop(1, 'transparent');
+    ctx.fillStyle = sunR;
+    ctx.fillRect(sunX - 70, sunY - 70, 140, 140);
+    ctx.restore();
+  }
+
+  // Label: atmosphere CO2 concentration bar
+  const co2Pct = Math.min(1, (state.atmCO2 - 280) / 420); // 280-700 ppm range
+  const barW = W * 0.55;
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(W * 0.2, 12, barW, 7);
+  ctx.fillStyle = `hsl(${30 - co2Pct * 30},90%,55%)`;
+  ctx.fillRect(W * 0.2, 12, barW * co2Pct, 7);
+  ctx.fillStyle = '#90caf9';
+  ctx.font = '10px Space Mono, monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('Atmospheric CO₂ concentration', W * 0.2, 10);
+
+  // Trees
+  trees.forEach(t => {
+    const tx = t.x, ty = groundY;
+    // Trunk
+    ctx.fillStyle = t.burnt ? '#3e2723' : '#5d4037';
+    ctx.fillRect(tx - 3, ty - t.h * 0.5, 6, t.h * 0.5);
+    // Canopy
+    if (!t.burnt) {
+      ctx.fillStyle = `hsl(${t.hue},55%,${25 + forest * 15}%)`;
+      ctx.beginPath();
+      ctx.ellipse(tx, ty - t.h * 0.65, t.w * 0.5, t.h * 0.45, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // charred stump
+      ctx.fillStyle = '#212121';
+      ctx.beginPath();
+      ctx.ellipse(tx, ty - t.h * 0.2, t.w * 0.3, t.h * 0.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  // Factory (human emissions)
+  const human = +humanSlider.value / 100;
+  const fx = W * 0.8;
+  ctx.fillStyle = '#37474f';
+  ctx.fillRect(fx - 30, groundY - 60, 60, 60);
+  ctx.fillStyle = '#546e7a';
+  ctx.fillRect(fx - 10, groundY - 90, 20, 34);
+  ctx.fillRect(fx + 14, groundY - 80, 16, 24);
+  ctx.fillStyle = 'rgba(255,112,67,0.15)';
+  if (human > 0.5) { ctx.fillRect(fx - 35, groundY - 65, 70, 70); }
+
+  // Particles
+  particles.forEach(p => {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p.life) * 0.85;
+    let r = 4;
+    switch (p.type) {
+      case 'co2':
+        ctx.fillStyle = '#ff7043'; r = 4;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.fillText('C', p.x, p.y + 2);
+        break;
+      case 'o2':
+        ctx.fillStyle = '#64b5f6'; r = 4;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.fillText('O', p.x, p.y + 2);
+        break;
+      case 'sun':
+        ctx.fillStyle = '#ffd54f'; r = 3;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
+        break;
+      case 'decomp':
+        ctx.fillStyle = '#90a4ae'; r = 3;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
+        break;
+      case 'fire':
+        ctx.fillStyle = `hsl(${20 + Math.random() * 30},100%,55%)`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 5 + Math.random() * 4, 0, Math.PI * 2); ctx.fill();
+        break;
+    }
+    ctx.restore();
+  });
+
+  // Labels on scene
+  ctx.font = 'bold 10px Space Mono, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(144,202,249,0.8)';
+  ctx.fillText('ATMOSPHERE', W / 2, groundY - 14);
+  ctx.fillStyle = 'rgba(105,240,174,0.7)';
+  ctx.fillText('BIOSPHERE', W * 0.25, groundY + 15);
+  ctx.fillStyle = 'rgba(144,164,174,0.7)';
+  ctx.fillText('SOIL / LITHOSPHERE', W * 0.5, H - 14);
+
+  // Photosynthesis arrow annotation
+  if (forest > 0.1 && sun > 0.1) {
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = '#69f0ae';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(W * 0.3, groundY * 0.35); ctx.lineTo(W * 0.3, groundY - 70); ctx.stroke();
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = '#69f0ae';
+    ctx.font = '9px Space Mono, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('↑ photosynthesis', W * 0.32, groundY * 0.35);
+    ctx.restore();
+  }
+}
+
+// ── Loop ──
+function loop() {
+  step();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ── Controls ──
+function syncSliderLabels() {
+  document.getElementById('sunVal').textContent    = sunSlider.value;
+  document.getElementById('forestVal').textContent = forestSlider.value;
+  document.getElementById('humanVal').textContent  = humanSlider.value;
+  document.getElementById('soilVal').textContent   = soilSlider.value;
+}
+[sunSlider, forestSlider, humanSlider, soilSlider].forEach(s => {
+  s.addEventListener('input', () => { syncSliderLabels(); buildTrees(); });
+});
+
+document.getElementById('fireBtn').addEventListener('click', () => {
+  state.fire = 180;
+  trees.forEach(t => { if (Math.random() < 0.6) t.burnt = true; });
+  // Slash forest slider
+  forestSlider.value = Math.max(5, +forestSlider.value - 30);
+  syncSliderLabels();
+  buildTrees();
+});
+
+document.getElementById('plantBtn').addEventListener('click', () => {
+  forestSlider.value = Math.min(100, +forestSlider.value + 25);
+  syncSliderLabels();
+  buildTrees();
+  trees.forEach(t => t.burnt = false);
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  sunSlider.value = 70; forestSlider.value = 60;
+  humanSlider.value = 30; soilSlider.value = 50;
+  syncSliderLabels();
+  state = { atmCO2: 412, biomassC: 450, soilC: 1580, fire: 0 };
+  particles = [];
+  buildTrees(); buildClouds();
+});
+
+// ── Questions ──
+const answers = { '1': 'B', '2': 'C' };
+const explanations = {
+  '1-B': 'Correct! High sunlight + dense forest maximizes photosynthesis. Plants absorb more CO₂ to fix carbon into sugars, lowering atmospheric concentration.',
+  '1-A': 'Not quite. Sunlight drives photosynthesis; it does not raise CO₂ on its own. More light means more carbon fixation.',
+  '1-C': 'Incorrect. Plants do not "fill up" — they continue absorbing CO₂ as long as sunlight and forest cover remain high.',
+  '1-D': 'Incorrect. Sunlight does not chemically destroy CO₂. It powers photosynthesis in plant cells.',
+  '2-C': 'Correct! A positive net flux means emissions (fire + human) exceed absorption (photosynthesis), so CO₂ accumulates in the atmosphere.',
+  '2-A': 'Incorrect. That would be a negative flux, meaning the biosphere is a net carbon sink, not a source.',
+  '2-B': 'Incorrect. Balance would be a flux near zero. A large positive spike means the cycle is out of balance.',
+  '2-D': 'Incorrect. While fire does release soil nutrients, the metric shows atmospheric carbon flux, not soil storage changes.',
+};
+
+document.querySelectorAll('.option-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const q = btn.dataset.q;
+    const val = btn.dataset.val;
+    const correct = answers[q];
+    const fbEl = document.getElementById(`q${q}-fb`);
+    // Disable all in same group
+    document.querySelectorAll(`.option-btn[data-q="${q}"]`).forEach(b => {
+      b.disabled = true;
+      if (b.dataset.val === correct) b.classList.add('correct');
+    });
+    if (val !== correct) btn.classList.add('wrong');
+    fbEl.textContent = explanations[`${q}-${val}`] || '';
+    fbEl.className = 'q-feedback ' + (val === correct ? 'c' : 'w');
+  });
+});
+
+// ── Init ──
+window.addEventListener('resize', resize);
+resize();
+loop();
+</script>
+</body>
+</html>
